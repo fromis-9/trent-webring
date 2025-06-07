@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+* {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+  font-feature-settings: 'liga' 1, 'kern' 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Text wrapping utilities for bio content */
+.break-words {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Ensure containers don't overflow */
+.profile-container {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.webring-widget {
+  @apply inline-flex items-center gap-2 text-sm text-gray-600 hover:text-trent transition-colors duration-200;
+}
+
+.webring-widget-dark {
+  @apply inline-flex items-center gap-2 text-sm text-gray-400 hover:text-gray-100 transition-colors duration-200;
+}
+
+.fade-up {
+  animation: fadeUp 0.6s ease-out forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(21, 71, 52, 0.08);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #154734 0%, #000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+  padding-bottom: 0.1em;
+  display: inline-block;
+}
+
+.border-subtle {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.glass {
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.8);
+} 

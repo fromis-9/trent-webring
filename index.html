@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>trent university webring</title>
+    <meta name="description" content="a growing directory of Trent students and alumni">
+    <link rel="icon" type="image/png" href="img/trenticon.png">
+    <link href="./css/output.css" rel="stylesheet">
+    
+    <!-- D3.js for network visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    
+    <style>
+        @font-face {
+            font-family: 'Eidetic Neo';
+            src: url('./fonts/EideticNeo-Regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        .font-eidetic {
+            font-family: 'Eidetic Neo', system-ui, -apple-system, sans-serif;
+        }
+        
+        /* Mobile responsive adjustments */
+        @media (max-width: 768px) {
+            .mobile-hide-sidebars .w-\[15\%\] {
+                display: none;
+            }
+            
+            .mobile-hide-sidebars .w-\[70\%\] {
+                width: 100% !important;
+                box-shadow: none !important;
+                border: none !important;
+                transform: none !important;
+            }
+            
+            .mobile-header-stack {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .mobile-text-responsive {
+                font-size: 1.875rem !important;
+                line-height: 2.25rem !important;
+                white-space: normal !important;
+                text-align: center;
+            }
+            
+            /* Mobile profile navigation */
+            .mobile-profile-nav {
+                flex-direction: column !important;
+                gap: 0.75rem !important;
+                align-items: stretch !important;
+            }
+            
+            .mobile-nav-row {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                width: 100% !important;
+            }
+            
+            .mobile-nav-center {
+                justify-content: center !important;
+            }
+            
+            .mobile-action-icons {
+                display: flex !important;
+                gap: 0.5rem !important;
+            }
+            
+            .mobile-show-icons {
+                display: flex !important;
+            }
+            
+            /* Force mobile icons to show on screens smaller than 768px */
+            @media (max-width: 767px) {
+                .mobile-action-icons {
+                    display: flex !important;
+                    gap: 0.5rem !important;
+                }
+                
+                .mobile-show-icons {
+                    display: flex !important;
+                    gap: 0.5rem !important;
+                }
+            }
+            
+            .mobile-hide-desktop-icons {
+                display: none !important;
+            }
+        }
+        
+        .hover-lift {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .fade-up {
+            animation: fadeUp 0.6s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+            position: relative;
+        }
+        
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .text-gradient {
+            background: linear-gradient(to right, #154734 0%, #000000 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .border-subtle {
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        
+        .bg-trent {
+            background-color: #154734;
+        }
+        
+        .text-trent {
+            color: #154734;
+        }
+    </style>
+    
+    <!-- Open Graph for social previews -->
+    <meta property="og:title" content="trent university webring">
+    <meta property="og:description" content="a growing directory of Trent students and alumni profile">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="URL_TO_YOUR_SHARE_IMAGE_HERE"> <!-- optional -->
+</head>
+<body class="bg-white text-gray-900 leading-relaxed">
+    <div class="flex min-h-screen mobile-hide-sidebars">
+        <!-- Left green sidebar (15%) -->
+        <div class="w-[15%] bg-trent"></div>
+        
+        <!-- Main content area (70%) with shadow -->
+        <div class="w-[70%] bg-white relative z-10" style="box-shadow: 0 40px 80px -12px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.3), 0 0 60px rgba(21, 71, 52, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4); border-left: 2px solid rgba(255, 255, 255, 0.4); border-right: 2px solid rgba(255, 255, 255, 0.4); transform: translateY(-2px);">
+            <!-- How to Join button - top right corner -->
+            <button id="joinButton" class="absolute top-6 text-gray-500 px-4 py-2 text-sm hover:text-gray-400 transition-colors z-20" style="right: 20px;">
+                how do i join?
+            </button>
+            
+            <!-- GitHub logo - top left corner -->
+            <a href="https://github.com/fromis-9/trent-webring" target="_blank" rel="noopener noreferrer" class="absolute top-6 transition-all z-20" style="left: 20px; filter: brightness(0) saturate(100%) invert(60%) sepia(7%) saturate(400%) hue-rotate(191deg) brightness(97%) contrast(86%);" title="View on GitHub" onmouseover="this.style.filter='brightness(0) saturate(100%) invert(71%) sepia(5%) saturate(400%) hue-rotate(191deg) brightness(99%) contrast(87%)'" onmouseout="this.style.filter='brightness(0) saturate(100%) invert(60%) sepia(7%) saturate(400%) hue-rotate(191deg) brightness(97%) contrast(86%)'">
+                <img src="img/github-mark-white.svg" alt="GitHub" class="h-6 w-6">
+            </a>
+            
+            <div class="min-h-screen">
+                <!-- Header -->
+                <header class="pt-20 pb-8 px-6">
+                    <div class="max-w-2xl mx-auto text-center">
+                        <div class="mb-8">
+                            <div class="flex items-center justify-center gap-4 mb-4 mobile-header-stack">
+                                <img src="img/trenticon.png" alt="Trent University" class="h-12 sm:h-16 w-auto">
+                                <h1 class="text-5xl sm:text-6xl font-light text-gradient whitespace-nowrap font-eidetic mobile-text-responsive">
+                                    trent university webring
+                                </h1>
+                            </div>
+                            <p class="text-gray-500 text-lg font-light">
+                                a growing directory of trent students and alumni
+                            </p>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Profile Display Section (Enhanced) -->
+                <div id="profileDisplay" class="px-6 profile-container overflow-hidden transition-all duration-500 ease-in-out" style="max-height: 0; opacity: 0;">
+                    <div class="max-w-3xl mx-auto">
+                        <div class="bg-gray-50 rounded-lg p-8 border-subtle relative" style="opacity: 0; transition: opacity 0.3s ease-in-out;">
+                            <!-- Back to directory button and Navigation - aligned horizontally -->
+                            <div class="flex items-center mb-6 pb-6 border-b border-gray-200 mobile-profile-nav">
+                                <!-- Desktop: Back button on the left, Mobile: Full width row -->
+                                <div class="flex-1 mobile-nav-row">
+                                    <button id="backToDirectory" class="text-gray-400 hover:text-trent transition-colors text-sm flex items-center gap-2">
+                                        ← back
+                                    </button>
+                                </div>
+
+                                <!-- Navigation centered on desktop, full width row on mobile -->
+                                <div class="flex-1 flex justify-center mobile-nav-row mobile-nav-center">
+                                    <div class="flex items-center gap-6">
+                                        <button id="prevProfile" class="text-gray-400 hover:text-trent transition-colors text-sm">
+                                            ← previous
+                                        </button>
+                                        <span class="text-gray-400 text-xs">
+                                            <span id="currentProfileIndex">1</span> of <span id="totalProfiles">0</span>
+                                        </span>
+                                        <button id="nextProfile" class="text-gray-400 hover:text-trent transition-colors text-sm">
+                                            next →
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Right spacer for balance (equal width to left) -->
+                                <div class="flex-1"></div>
+                            </div>
+
+                            <!-- Copy link button - top right (desktop only) -->
+                            <button id="copyProfileLink" title="Copy profile link" class="hidden md:block" style="position: absolute; top: 24px; right: 24px; padding: 4px; color: #b9bec6; background: none; border: none; cursor: pointer; transition: color 0.2s;">
+                                <svg style="width: 30px; height: 30px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                                </svg>
+                                <span id="copyFeedback" style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); background: #acacac; color: white; font-size: 12px; padding: 2px 6px; border-radius: 4px; opacity: 0; transition: opacity 0.2s; pointer-events: none; white-space: nowrap;">
+                                    Copied!
+                                </span>
+                            </button>
+
+                            <!-- Email button - top right (desktop only) -->
+                            <button id="emailProfile" title="Contact via form" class="hidden md:block" style="position: absolute; top: 24px; right: 64px; padding: 4px; color: #b9bec6; background: none; border: none; cursor: pointer; transition: color 0.2s;">
+                                <svg style="width: 30px; height: 30px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                            </button>
+
+                            <!-- Mobile Copy link button - top right (mobile only) -->
+                            <button id="copyProfileLinkMobile" title="Copy profile link" class="block md:hidden" style="position: absolute; top: 24px; right: 24px; padding: 4px; color: #b9bec6; background: none; border: none; cursor: pointer; transition: color 0.2s;">
+                                <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                                </svg>
+                                <span id="copyFeedbackMobile" style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); background: #acacac; color: white; font-size: 12px; padding: 2px 6px; border-radius: 4px; opacity: 0; transition: opacity 0.2s; pointer-events: none; white-space: nowrap;">
+                                    Copied!
+                                </span>
+                            </button>
+
+                            <!-- Mobile Email button - top right (mobile only) -->
+                            <button id="emailProfileMobile" title="Contact via form" class="block md:hidden" style="position: absolute; top: 24px; right: 56px; padding: 4px; color: #b9bec6; background: none; border: none; cursor: pointer; transition: color 0.2s;">
+                                <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                            </button>
+                            
+                            <div class="text-center mb-8">
+                                <img id="profileImage" src="" alt="" class="w-24 h-24 rounded-full mx-auto mb-4 object-cover border-2 border-gray-200">
+                                <h2 id="profileName" class="text-3xl font-light mb-2"></h2>
+                                <p id="profileProgram" class="text-trent text-sm uppercase tracking-wide mb-1"></p>
+                                <p id="profileYear" class="text-gray-400 text-sm mb-1"></p>
+                                <p id="profilePronouns" class="text-gray-500 text-sm mb-4 italic"></p>
+                                <p id="profileBio" class="text-gray-600 max-w-2xl mx-auto leading-relaxed break-words"></p>
+                            </div>
+
+                            <!-- Links -->
+                            <div id="profileLinks" class="flex flex-wrap justify-center gap-4 mb-8">
+                                <!-- Links will be populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Directory View -->
+                <div id="directoryView">
+                    <!-- Current Site Display (Legacy for external navigation) -->
+                    <div id="currentSite" class="px-6 mb-6">
+                        <div class="max-w-2xl mx-auto">
+                            <div id="siteInfo" class="hidden text-center fade-up">
+                                <div class="bg-gray-50 rounded-lg p-8 border-subtle">
+                                    <p class="text-sm text-gray-400 uppercase tracking-wide mb-2">currently viewing</p>
+                                    <h2 id="siteName" class="text-2xl font-medium mb-2"></h2>
+                                    <p id="siteDescription" class="text-gray-600 mb-6"></p>
+                                    <div class="flex justify-center items-center gap-6">
+                                        <a id="prevSite" href="#" class="text-gray-400 hover:text-trent transition-colors text-sm">
+                                            ← prev
+                                        </a>
+                                        <a id="visitSite" href="#" target="_blank" class="bg-trent text-white px-6 py-2 rounded-full text-sm hover:bg-trent/90 transition-colors">
+                                            visit site
+                                        </a>
+                                        <a id="nextSite" href="#" class="text-gray-400 hover:text-trent transition-colors text-sm">
+                                            next →
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="defaultView" class="text-center">
+                                <p class="text-gray-600">
+                                    recent members
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Member Grid -->
+                    <div class="px-6 mb-20">
+                        <div class="max-w-4xl mx-auto">
+                            <div id="siteGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <!-- Members will be dynamically populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network Visualization -->
+                <div id="networkSection" class="px-6 mb-20" style="display: none;">
+                    <div class="max-w-4xl mx-auto">
+                        <div class="bg-gray-50 rounded-lg border-subtle overflow-hidden">
+                            <div class="p-6 border-b border-gray-200">
+                                <h2 class="text-xl font-light text-center mb-2">the webring network</h2>
+                                <p class="text-gray-600 text-sm text-center mb-4">
+                                    search by name, year, or program
+                                </p>
+                                <div class="flex justify-center">
+                                    <input 
+                                        type="text" 
+                                        id="search" 
+                                        placeholder="search..." 
+                                        class="px-4 py-2 border border-gray-300 rounded-full text-sm text-center focus:outline-none focus:ring-2 focus:ring-trent focus:border-transparent max-w-xs w-full"
+                                    >
+                                </div>
+                            </div>
+                            <div id="chart-container" class="w-full relative" style="background-color: #FAFAFA; height: 384px; min-height: 384px;"></div>
+                            <div id="chart-container-mobile" class="w-full relative" style="background-color: #FAFAFA; height: 320px; min-height: 320px; display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Join Section -->
+                <div class="px-6 mb-20">
+                    <div class="max-w-2xl mx-auto">
+                        <div class="bg-gray-50 rounded-lg p-8 border-subtle fade-up">
+                            <h2 class="text-2xl font-light mb-6 text-center">join the webring</h2>
+                            
+                            <div class="space-y-6">
+                                <div>
+                                    <h3 class="text-sm font-medium text-gray-900 mb-3">how to join:</h3>
+                                    <ol class="text-gray-600 space-y-2 text-sm">
+                                        <li><strong>1.</strong> Fill out our <a href="#" id="submissionFormLink" class="text-trent hover:underline">submission form</a> (requires @trentu.ca email)</li>
+                                        <li><strong>2.</strong> We'll review your submission for approval</li>
+                                        <li><strong>3.</strong> Once approved, you'll appear in the directory!</li>
+                                    </ol>
+                                </div>
+                                
+                                <div>
+                                    <h3 class="text-sm font-medium text-gray-900 mb-3">want to link back to us?</h3>
+                                    <p class="text-gray-600 text-sm mb-3">Add one of these to your personal site/portfolio to show you're part of the community:</p>
+                                    
+                                    <div class="space-y-4">
+                                        <div>
+                                            <h4 class="text-xs font-medium text-gray-700 mb-2">Simple badge:</h4>
+                                            <div class="bg-white rounded border-subtle p-3 font-mono text-xs text-gray-600 overflow-x-auto relative">
+                                                <button class="copy-code-btn text-gray-400 hover:text-gray-600 transition-colors" title="Copy code" style="position: absolute; top: 8px; right: 8px; padding: 4px; background: rgba(255,255,255,0.9); border: none; border-radius: 4px; cursor: pointer; z-index: 10;">
+                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                </button>
+                                                <code>&lt;a href="https://trentwebring.com"&gt;<br>&nbsp;&nbsp;&lt;img src="https://trentwebring.com/trenticon.png" width="20" alt="Trent Webring"/&gt;<br>&lt;/a&gt;</code>
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <h4 class="text-xs font-medium text-gray-700 mb-2">Text link:</h4>
+                                            <div class="bg-white rounded border-subtle p-3 font-mono text-xs text-gray-600 overflow-x-auto relative">
+                                                <button class="copy-code-btn text-gray-400 hover:text-gray-600 transition-colors" title="Copy code" style="position: absolute; top: 8px; right: 8px; padding: 4px; background: rgba(255,255,255,0.9); border: none; border-radius: 4px; cursor: pointer; z-index: 10;">
+                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                </button>
+                                                <code>Part of the &lt;a href="https://trentwebring.com"&gt;Trent University Webring&lt;/a&gt;</code>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h4 class="text-xs font-medium text-gray-700 mb-2">Badge with text:</h4>
+                                            <div class="bg-white rounded border-subtle p-3 font-mono text-xs text-gray-600 overflow-x-auto relative">
+                                                <button class="copy-code-btn text-gray-400 hover:text-gray-600 transition-colors" title="Copy code" style="position: absolute; top: 8px; right: 8px; padding: 4px; background: rgba(255,255,255,0.9); border: none; border-radius: 4px; cursor: pointer; z-index: 10;">
+                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                </button>
+                                                <code>&lt;div style="display: inline-flex; align-items: center; gap: 8px;"&gt;<br>&nbsp;&nbsp;&lt;img src="https://trentwebring.com/trenticon.png" width="16" alt="Trent Webring"/&gt;<br>&nbsp;&nbsp;&lt;a href="https://trentwebring.com"&gt;Trent University Webring&lt;/a&gt;<br>&lt;/div&gt;</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <footer class="px-6 pb-12">
+                    <div class="max-w-2xl mx-auto text-center">
+                        <p class="text-gray-400 text-sm">
+                            <span id="siteCount" class="text-trent font-medium">0</span> members and counting
+                        </p>
+                        <p class="text-gray-300 text-xs mt-2">
+                            inspired by  <a href="https://github.com/JusGu/uwatering" class="hover:text-trent transition-colors">uwaterloo cs webring</a>
+                        </p>
+                    </div>
+                </footer>
+            </div>
+        </div>
+        
+        <!-- Right green sidebar (15%) -->
+        <div class="w-[15%] bg-trent"></div>
+    </div>
+
+    <script>
+        // Enhanced webring data - fetched from local JSON file
+        let webringData = [];
+        let memberUrlMap = new Map(); // Maps clean URLs to member indices
+
+        let currentProfileIndex = 0;
+
+        // Function to generate clean URL slug from member data
+        function generateMemberSlug(member, allMembers) {
+            // Start with clean name slug
+            let baseSlug = member.name.toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+                .replace(/\s+/g, '-') // Replace spaces with hyphens
+                .replace(/-+/g, '-') // Remove multiple consecutive hyphens
+                .trim();
+
+            // Sort members by creation date (oldest first) to respect first-come-first-serve
+            const membersByCreationDate = [...allMembers].sort((a, b) => 
+                new Date(a.created_at) - new Date(b.created_at)
+            );
+
+            // Check how many members with the same base slug were created before this one
+            const currentMemberDate = new Date(member.created_at);
+            let duplicateCount = 0;
+            
+            for (const earlierMember of membersByCreationDate) {
+                const earlierDate = new Date(earlierMember.created_at);
+                if (earlierDate >= currentMemberDate) break; // Stop when we reach current member's date
+                
+                const earlierSlug = earlierMember.name.toLowerCase()
+                    .replace(/[^a-z0-9\s-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-')
+                    .trim();
+                
+                if (earlierSlug === baseSlug) {
+                    duplicateCount++;
+                }
+            }
+
+            // First person with this name gets clean URL, others get numbered
+            return duplicateCount === 0 ? baseSlug : `${baseSlug}-${duplicateCount + 1}`;
+        }
+
+        // Build URL mapping for all members
+        function buildUrlMapping() {
+            memberUrlMap.clear();
+            webringData.forEach((member, index) => {
+                const slug = generateMemberSlug(member, webringData);
+                memberUrlMap.set(slug, index);
+                member.slug = slug; // Store slug on member object for easy access
+            });
+        }
+
+        // Function to fetch member data from Supabase
+        async function loadMemberData() {
+            try {
+                const SUPABASE_URL = 'https://turiuwdynvhqcjuwjrau.supabase.co';
+                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1cml1d2R5bnZocWNqdXdqcmF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1OTE0NDYsImV4cCI6MjA2NDE2NzQ0Nn0.swGHrz5T8oS6t-IH1FjMOWSqgzVA0RD7QG4ez7YVto8';
+
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/members?select=name,program,year,bio,profile_image,pronouns,links,created_at,email,email_public&order=created_at.desc`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Transform Supabase data to match our existing format
+                webringData = data.map(member => ({
+                    name: member.name,
+                    program: member.program,
+                    year: member.year,
+                    bio: member.bio,
+                    profileImage: member.profile_image,
+                    pronouns: member.pronouns,
+                    links: member.links || [],
+                    email: member.email,
+                    email_public: member.email_public,
+                    created_at: member.created_at
+                }));
+
+                console.log(`Loaded ${webringData.length} members from Supabase (newest to oldest)`);
+                
+                // Build URL mapping
+                buildUrlMapping();
+                
+                // Initialize the webring with loaded data
+                populateMemberGrid();
+                updateSiteCount();
+                
+                // Handle navigation AFTER data is loaded
+                handleNavigation();
+                
+                // Initialize network visualization
+                initializeNetworkVisualization();
+                
+            } catch (error) {
+                console.warn('Could not load member data from Supabase:', error);
+                // Fallback to empty array if Supabase unavailable
+                webringData = [];
+                buildUrlMapping();
+                populateMemberGrid();
+                updateSiteCount();
+                
+                // Handle navigation even with empty data
+                handleNavigation();
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            animateElements();
+            loadMemberData(); // This will populate grid, update count, and handle navigation
+            setupEventListeners();
+        });
+
+        function animateElements() {
+            const elements = document.querySelectorAll('.fade-up');
+            elements.forEach((el, index) => {
+                el.style.animationDelay = `${index * 0.1}s`;
+            });
+        }
+
+        function setupEventListeners() {
+            // Profile navigation
+            document.getElementById('prevProfile').addEventListener('click', showPreviousProfile);
+            document.getElementById('nextProfile').addEventListener('click', showNextProfile);
+            document.getElementById('backToDirectory').addEventListener('click', showDirectory);
+
+            // Copy profile link
+            document.getElementById('copyProfileLink').addEventListener('click', async function() {
+                const member = webringData[currentProfileIndex];
+                const profileUrl = `${window.location.origin}${window.location.pathname}#${member.slug}`;
+                
+                try {
+                    await navigator.clipboard.writeText(profileUrl);
+                    // Show feedback
+                    const feedback = document.getElementById('copyFeedback');
+                    feedback.style.opacity = '1';
+                    setTimeout(() => {
+                        feedback.style.opacity = '0';
+                    }, 2000);
+                } catch (err) {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = profileUrl;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    // Show feedback
+                    const feedback = document.getElementById('copyFeedback');
+                    feedback.style.opacity = '1';
+                    setTimeout(() => {
+                        feedback.style.opacity = '0';
+                    }, 2000);
+                }
+            });
+
+            // Email profile
+            document.getElementById('emailProfile').addEventListener('click', function() {
+                const member = webringData[currentProfileIndex];
+                // Button only shows when email is available, so send direct email
+                const subject = encodeURIComponent(`Hello from Trent Webring`);
+                const body = encodeURIComponent(`Hi ${member.name},\n\nI found your profile on the Trent University Webring and wanted to connect!\n\n`);
+                window.open(`mailto:${member.email}?subject=${subject}&body=${body}`);
+            });
+
+            // Submission form link
+            document.getElementById('submissionFormLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.open('https://forms.office.com/r/StpgGu1xje', '_blank');
+            });
+
+            // How to join button - scroll to join section
+            document.getElementById('joinButton').addEventListener('click', function() {
+                // Find the h2 with "join the webring" text
+                const headings = document.querySelectorAll('h2');
+                let joinSection = null;
+                headings.forEach(h2 => {
+                    if (h2.textContent.includes('join the webring')) {
+                        joinSection = h2;
+                    }
+                });
+                
+                if (joinSection) {
+                    // Get the position and add some offset above
+                    const yOffset = -80; // 80px above the heading
+                    const y = joinSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                    
+                    window.scrollTo({
+                        top: y,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+
+            // Copy code buttons
+            document.querySelectorAll('.copy-code-btn').forEach(button => {
+                button.addEventListener('click', async function() {
+                    const codeElement = this.parentElement.querySelector('code');
+                    const codeText = codeElement.innerHTML
+                        .replace(/<br>/g, '\n')
+                        .replace(/&nbsp;/g, ' ')
+                        .replace(/&lt;/g, '<')
+                        .replace(/&gt;/g, '>')
+                        .replace(/&amp;/g, '&');
+                    
+                    try {
+                        await navigator.clipboard.writeText(codeText);
+                        // Show feedback
+                        const originalTitle = this.title;
+                        this.title = 'Copied!';
+                        this.style.color = '#154734'; // Trent green
+                        setTimeout(() => {
+                            this.title = originalTitle;
+                            this.style.color = '';
+                        }, 2000);
+                    } catch (err) {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = codeText;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        // Show feedback
+                        const originalTitle = this.title;
+                        this.title = 'Copied!';
+                        this.style.color = '#154734'; // Trent green
+                        setTimeout(() => {
+                            this.title = originalTitle;
+                            this.style.color = '';
+                        }, 2000);
+                    }
+                });
+            });
+
+            // Mobile copy profile link
+            document.getElementById('copyProfileLinkMobile').addEventListener('click', async function() {
+                const member = webringData[currentProfileIndex];
+                const profileUrl = `${window.location.origin}${window.location.pathname}#${member.slug}`;
+                
+                try {
+                    await navigator.clipboard.writeText(profileUrl);
+                    // Show feedback using the feedback span
+                    const feedback = document.getElementById('copyFeedbackMobile');
+                    feedback.style.opacity = '1';
+                    setTimeout(() => {
+                        feedback.style.opacity = '0';
+                    }, 2000);
+                } catch (err) {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = profileUrl;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    // Show feedback using the feedback span
+                    const feedback = document.getElementById('copyFeedbackMobile');
+                    feedback.style.opacity = '1';
+                    setTimeout(() => {
+                        feedback.style.opacity = '0';
+                    }, 2000);
+                }
+            });
+
+            // Mobile email profile
+            document.getElementById('emailProfileMobile').addEventListener('click', function() {
+                const member = webringData[currentProfileIndex];
+                // Button only shows when email is available, so send direct email
+                const subject = encodeURIComponent(`Hello from Trent Webring`);
+                const body = encodeURIComponent(`Hi ${member.name},\n\nI found your profile on the Trent University Webring and wanted to connect!\n\n`);
+                window.open(`mailto:${member.email}?subject=${subject}&body=${body}`);
+            });
+        }
+
+        function populateMemberGrid(searchTerm = '') {
+            const grid = document.getElementById('siteGrid');
+            grid.innerHTML = '';
+
+            let membersToShow;
+            
+            if (searchTerm.trim() === '') {
+                // No search - only show the first 6 profiles (newest) - queue system
+                membersToShow = webringData.slice(0, 6);
+            } else {
+                // Search mode - show ALL matching profiles
+                searchTerm = searchTerm.toLowerCase();
+                membersToShow = webringData.filter(member => 
+                    member.name.toLowerCase().includes(searchTerm) ||
+                    member.program.toLowerCase().includes(searchTerm) ||
+                    member.year.toString().includes(searchTerm) ||
+                    (member.bio && member.bio.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            membersToShow.forEach((member, displayIndex) => {
+                // Get the original index in webringData for proper profile linking
+                const originalIndex = webringData.indexOf(member);
+                
+                const memberCard = document.createElement('div');
+                memberCard.className = 'bg-white rounded-lg border-subtle p-6 hover-lift text-left group cursor-pointer transition-all duration-200';
+                memberCard.setAttribute('data-member-index', originalIndex);
+                
+                memberCard.innerHTML = `
+                    <div class="flex items-start gap-4 mb-3">
+                        <img src="${member.profileImage || 'default.svg'}" 
+                             alt="${member.name}" 
+                             class="w-12 h-12 rounded-full object-cover border border-gray-200">
+                        <div class="flex-1">
+                            <h3 class="font-medium text-gray-900 group-hover:text-trent transition-colors">${member.name}</h3>
+                            <p class="text-xs text-trent uppercase tracking-wide">${member.program}</p>
+                            <p class="text-xs text-gray-400">'${member.year.toString().slice(-2)}</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 leading-relaxed line-clamp-2 break-words">${member.bio || 'Trent University community member'}</p>
+                `;
+                
+                memberCard.addEventListener('click', () => showProfile(originalIndex));
+                grid.appendChild(memberCard);
+            });
+        }
+
+        function showProfile(index) {
+            currentProfileIndex = index;
+            const member = webringData[index];
+            
+            // Get the profile container and inner content
+            const profileDisplay = document.getElementById('profileDisplay');
+            const profileContainer = document.querySelector('#profileDisplay .bg-gray-50');
+            
+            // Hide directory, show profile with smooth animation
+            document.getElementById('directoryView').classList.add('hidden');
+            
+            // Populate profile data first
+            document.getElementById('profileImage').src = member.profileImage || 'default.svg';
+            document.getElementById('profileImage').alt = member.name;
+            document.getElementById('profileName').textContent = member.name;
+            document.getElementById('profileProgram').textContent = member.program;
+            document.getElementById('profileYear').textContent = `class of ${member.year}`;
+            document.getElementById('profilePronouns').textContent = member.pronouns || '';
+            document.getElementById('profileBio').textContent = member.bio || 'Trent University community member';
+            
+            // Update email button tooltips and visibility based on consent
+            const emailDesktop = document.getElementById('emailProfile');
+            const emailMobile = document.getElementById('emailProfileMobile');
+            
+            if (member.email_public && member.email) {
+                // Show email buttons for students who opted in - restore original responsive classes
+                emailDesktop.className = 'hidden md:block';
+                emailDesktop.title = 'Send direct email';
+                emailMobile.className = 'block md:hidden';
+                emailMobile.title = 'Send direct email';
+            } else {
+                // Hide email buttons for students who didn't opt in
+                emailDesktop.className = 'hidden';
+                emailMobile.className = 'hidden';
+            }
+            
+            // Populate links
+            const linksContainer = document.getElementById('profileLinks');
+            linksContainer.innerHTML = '';
+            if (member.links && member.links.length > 0) {
+                member.links.forEach(link => {
+                    const linkElement = document.createElement('a');
+                    linkElement.href = link.url;
+                    linkElement.target = '_blank';
+                    linkElement.rel = 'noopener noreferrer';
+                    linkElement.className = 'bg-trent text-white px-6 py-2 rounded-full hover:bg-trent/90 transition-colors font-medium';
+                    linkElement.textContent = link.text;
+                    linksContainer.appendChild(linkElement);
+                });
+            }
+            
+            // Update navigation
+            document.getElementById('currentProfileIndex').textContent = index + 1;
+            document.getElementById('totalProfiles').textContent = webringData.length;
+            
+            // Animate profile display opening
+            profileDisplay.style.maxHeight = '1000px'; // Large enough for any profile
+            profileDisplay.style.opacity = '1';
+            profileDisplay.style.marginBottom = '4rem'; // Add margin when visible (mb-16 = 4rem)
+            
+            // Trigger inner content fade-in after a brief delay
+            setTimeout(() => {
+                profileContainer.style.opacity = '1';
+            }, 150);
+            
+            // Update URL with clean slug
+            window.history.pushState({}, '', `#${member.slug}`);
+        }
+
+        function showDirectory() {
+            // Get profile elements
+            const profileDisplay = document.getElementById('profileDisplay');
+            const profileContainer = document.querySelector('#profileDisplay .bg-gray-50');
+            
+            // Show directory immediately to prevent content jumping
+            document.getElementById('directoryView').classList.remove('hidden');
+            
+            // Start closing animation
+            profileContainer.style.opacity = '0';
+            
+            setTimeout(() => {
+                profileDisplay.style.maxHeight = '0';
+                profileDisplay.style.opacity = '0';
+                profileDisplay.style.marginBottom = '0'; // Remove margin when hidden
+            }, 150);
+            
+            window.history.pushState({}, '', window.location.pathname);
+        }
+
+        function showPreviousProfile() {
+            const prevIndex = (currentProfileIndex - 1 + webringData.length) % webringData.length;
+            showProfile(prevIndex);
+            // Update selected node in network visualization
+            updateNetworkSelectedNode(prevIndex);
+        }
+
+        function showNextProfile() {
+            const nextIndex = (currentProfileIndex + 1) % webringData.length;
+            showProfile(nextIndex);
+            // Update selected node in network visualization
+            updateNetworkSelectedNode(nextIndex);
+        }
+
+        // Function to update selected node in network visualization
+        function updateNetworkSelectedNode(profileIndex) {
+            // Update the global selected node index
+            window.networkSelectedNodeIndex = profileIndex;
+            
+            // Find the network visualization and update selected node
+            const containers = ['chart-container', 'chart-container-mobile'];
+            containers.forEach(containerId => {
+                const container = document.getElementById(containerId);
+                if (container && container.querySelector('svg')) {
+                    // Trigger node color update if the update function exists
+                    if (window.updateNetworkNodeColors) {
+                        window.updateNetworkNodeColors();
+                    }
+                }
+            });
+        }
+
+        function handleNavigation() {
+            const hash = window.location.hash;
+            if (hash.startsWith('#') && hash.length > 1) {
+                const slug = hash.substring(1);
+                const memberIndex = memberUrlMap.get(slug);
+                if (memberIndex !== undefined) {
+                    showProfile(memberIndex);
+                    return;
+                }
+            }
+            // If no valid hash found, show directory
+            showDirectory();
+        }
+
+        function updateSiteCount() {
+            document.getElementById('siteCount').textContent = webringData.length;
+        }
+
+        // Handle browser back/forward
+        window.addEventListener('popstate', handleNavigation);
+
+        // Function to filter member grid based on search
+        function filterMemberGrid(searchTerm) {
+            // Simply repopulate the grid with the search term
+            // This handles both search (show all matches) and no search (show queue)
+            populateMemberGrid(searchTerm);
+        }
+
+        // Legacy external site navigation (kept for backwards compatibility)
+        function showSiteInfo(url) {
+            // This function is kept for any external links that might still use the old format
+            window.open(url, '_blank');
+        }
+
+        // Function to process Microsoft Forms submission data
+        function processMemberData(formData) {
+            // Combine links from separate form fields
+            const links = [];
+            
+            // Add links in order of priority
+            if (formData.linkedinUrl) links.push({ text: "LinkedIn", url: formData.linkedinUrl });
+            if (formData.portfolioUrl) links.push({ text: "Portfolio", url: formData.portfolioUrl });
+            if (formData.githubUrl) links.push({ text: "GitHub", url: formData.githubUrl });
+            if (formData.instagramUrl) links.push({ text: "Instagram", url: formData.instagramUrl });
+            if (formData.otherUrl) {
+                // For "Other" link, might want to ask for a label too
+                links.push({ text: "Website", url: formData.otherUrl });
+            }
+            
+            return {
+                "name": formData.name, // Display name from form
+                "program": formData.program,
+                "year": formData.graduationYear,
+                "bio": formData.bio,
+                "profileImage": formData.profileImageUrl || "default.svg",
+                "links": links,
+                "pronouns": formData.pronouns, // Optional field
+                // These would be auto-captured by Forms when restricted to organization:
+                "officialName": formData.recordedName, // From Forms "Record name" setting
+                "officialEmail": formData.recordedEmail // From Forms organization restriction
+            };
+        }
+    </script>
+    
+    <script>
+        // Network Visualization Code
+        let mobileExists = false,
+            desktopExists = false;
+
+        function checkIfGraphNeeded() {
+            console.log('checkIfGraphNeeded called, window width:', window.innerWidth);
+            console.log('Mobile exists:', mobileExists, 'Desktop exists:', desktopExists);
+            
+            const desktopContainer = document.getElementById("chart-container");
+            const mobileContainer = document.getElementById("chart-container-mobile");
+            
+            if (window.innerWidth < 640 && !mobileExists && webringData.length > 0) {
+                // Show mobile, hide desktop
+                if (mobileContainer) mobileContainer.style.display = 'block';
+                if (desktopContainer) desktopContainer.style.display = 'none';
+                
+                mobileExists = true;
+                console.log('Creating mobile graph...');
+                makeGraph("chart-container-mobile");
+            } else if (window.innerWidth >= 640 && !desktopExists && webringData.length > 0) {
+                // Show desktop, hide mobile
+                if (desktopContainer) desktopContainer.style.display = 'block';
+                if (mobileContainer) mobileContainer.style.display = 'none';
+                
+                desktopExists = true;
+                console.log('Creating desktop graph...');
+                makeGraph("chart-container");
+            }
+        }
+
+        function makeGraph(containerId, retryCount = 0) {
+            console.log('makeGraph called for:', containerId, 'retry:', retryCount);
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.log('Container not found:', containerId);
+                return;
+            }
+            if (webringData.length === 0) {
+                console.log('No webring data available');
+                return;
+            }
+            
+            console.log('Making graph with', webringData.length, 'members');
+            
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            console.log('Container dimensions:', width, 'x', height);
+            
+            // Safety check for valid dimensions with retry limit
+            if ((width <= 0 || height <= 0) && retryCount < 5) {
+                console.log('Invalid container dimensions, retrying in 500ms... (attempt', retryCount + 1, '/5)');
+                setTimeout(() => makeGraph(containerId, retryCount + 1), 500);
+                return;
+            } else if ((width <= 0 || height <= 0) && retryCount >= 5) {
+                console.log('Failed to get valid container dimensions after 5 attempts, aborting');
+                return;
+            }
+
+            const nodeRadius = 8;
+            const defaultNodeColor = "#B8B8B8";
+            const highlightedNodeColor = "#154734"; // Trent green
+            const defaultEdgeColor = "#E5E5E5";
+
+            const svg = d3
+                .select(`#${containerId}`)
+                .append("svg")
+                .attr("width", "100%")
+                .attr("height", "100%")
+                .attr("viewBox", `0 0 ${width} ${height}`)
+                .style("background-color", "#FAFAFA")
+                .style("cursor", "move");
+
+            const g = svg.append("g");
+
+            const zoom = d3
+                .zoom()
+                .scaleExtent([0.1, 4])
+                .on("zoom", (event) => {
+                    g.attr("transform", event.transform);
+                });
+
+            svg.call(zoom);
+
+            // Prepare member data with IDs
+            const memberNodes = webringData.map((member, index) => ({
+                ...member,
+                id: `node-${index}`,
+                index: index
+            }));
+            
+            // Track selected node
+            let selectedNodeIndex = null;
+            
+            // Expose globally for profile navigation updates
+            window.networkSelectedNodeIndex = selectedNodeIndex;
+            window.updateNetworkNodeColors = updateNodeColors;
+
+            const simulation = d3
+                .forceSimulation()
+                .force(
+                    "link",
+                    d3
+                        .forceLink()
+                        .id((d) => d.id)
+                        .distance(80)
+                )
+                .force("charge", d3.forceManyBody().strength(-150))
+                .force("center", d3.forceCenter(width / 2, height / 2))
+                .force("collision", d3.forceCollide().radius(nodeRadius * 3))
+                .alphaDecay(0.05)
+                .velocityDecay(0.6);
+
+            // Create ring links (each member connects to the next one)
+            const links = memberNodes.map((member, index) => ({
+                source: member.id,
+                target: memberNodes[(index + 1) % memberNodes.length].id,
+            }));
+
+            const link = g
+                .append("g")
+                .selectAll("line")
+                .data(links)
+                .enter()
+                .append("line")
+                .attr("stroke", defaultEdgeColor)
+                .attr("stroke-opacity", 1)
+                .attr("stroke-width", 2);
+
+            const node = g
+                .append("g")
+                .selectAll("g")
+                .data(memberNodes)
+                .enter()
+                .append("g")
+                .call(
+                    d3
+                        .drag()
+                        .on("start", dragstarted)
+                        .on("drag", dragged)
+                        .on("end", dragended)
+                );
+
+            node
+                .append("circle")
+                .attr("r", nodeRadius)
+                .attr("fill", defaultNodeColor)
+                .attr("stroke", "#fff")
+                .attr("stroke-width", 2)
+                .on("mouseover", handleMouseOver)
+                .on("mouseout", handleMouseOut)
+                .on("click", handleClick);
+
+            // Add labels for nodes (member names)
+            node
+                .append("text")
+                .attr("dx", 12)
+                .attr("dy", 4)
+                .text(d => d.name)
+                .attr("fill", "#374151")
+                .style("font-size", "11px")
+                .style("font-family", "'Inter', sans-serif")
+                .style("pointer-events", "none");
+
+            simulation.nodes(memberNodes).on("tick", ticked);
+            simulation.force("link").links(links);
+
+            function fitToView() {
+                let minX = Infinity, minY = Infinity;
+                let maxX = -Infinity, maxY = -Infinity;
+
+                node.each((d) => {
+                    minX = Math.min(minX, d.x);
+                    minY = Math.min(minY, d.y);
+                    maxX = Math.max(maxX, d.x);
+                    maxY = Math.max(maxY, d.y);
+                });
+
+                const padding = 50;
+                minX -= padding;
+                minY -= padding;
+                maxX += padding;
+                maxY += padding;
+
+                const scale = Math.min(width / (maxX - minX), height / (maxY - minY)) * 0.8;
+                const centerX = (minX + maxX) / 2;
+                const centerY = (minY + maxY) / 2;
+
+                svg
+                    .transition()
+                    .duration(750)
+                    .call(
+                        zoom.transform,
+                        d3.zoomIdentity
+                            .translate(width / 2, height / 2)
+                            .scale(scale)
+                            .translate(-centerX, -centerY)
+                    );
+            }
+
+            function ticked() {
+                link
+                    .attr("x1", (d) => d.source.x)
+                    .attr("y1", (d) => d.source.y)
+                    .attr("x2", (d) => d.target.x)
+                    .attr("y2", (d) => d.target.y);
+                node.attr("transform", (d) => `translate(${d.x},${d.y})`);
+            }
+
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                svg.style("cursor", "grabbing");
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                svg.style("cursor", "grab");
+                d.fx = null;
+                d.fy = null;
+            }
+
+            function handleMouseOver(event, d) {
+                d3.select(this).attr("fill", highlightedNodeColor);
+                svg.style("cursor", "pointer");
+            }
+
+            function handleMouseOut(event, d) {
+                d3.select(this).attr("fill", getNodeColor(d));
+                svg.style("cursor", "move");
+            }
+
+            function handleClick(event, d) {
+                // Check if clicking the same node that's already selected
+                if (selectedNodeIndex === d.index) {
+                    // Deselect and return to directory view
+                    selectedNodeIndex = null;
+                    window.networkSelectedNodeIndex = null;
+                    updateNodeColors();
+                    showDirectory();
+                    
+                    // Smooth scroll to directory section
+                    setTimeout(() => {
+                        const directorySection = document.getElementById('directoryView');
+                        if (directorySection) {
+                            directorySection.scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'start' 
+                            });
+                        }
+                    }, 100);
+                } else {
+                    // Select new node and show profile
+                    selectedNodeIndex = d.index;
+                    window.networkSelectedNodeIndex = d.index;
+                    updateNodeColors();
+                    showProfile(d.index);
+                    
+                    // Smooth scroll to profile section
+                    setTimeout(() => {
+                        const profileSection = document.getElementById('profileDisplay');
+                        if (profileSection) {
+                            profileSection.scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'start' 
+                            });
+                        }
+                    }, 100);
+                }
+            }
+
+            function getNodeColor(d) {
+                const searchInput = document.getElementById("search");
+                const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
+                
+                // Selected node gets a special color - use global variable
+                if (window.networkSelectedNodeIndex === d.index) {
+                    return "#0F5132"; // Darker green for selected
+                }
+
+                if (searchTerm === "") {
+                    return defaultNodeColor;
+                } else {
+                    return d.name.toLowerCase().includes(searchTerm) ||
+                        d.program.toLowerCase().includes(searchTerm) ||
+                        d.year.toString().includes(searchTerm) ||
+                        (d.bio && d.bio.toLowerCase().includes(searchTerm))
+                        ? highlightedNodeColor
+                        : defaultNodeColor;
+                }
+            }
+            
+            // Function to update all node colors
+            function updateNodeColors() {
+                node.selectAll("circle").attr("fill", (d) => getNodeColor(d));
+            }
+
+            // Search functionality
+            const searchInput = document.getElementById("search");
+            if (searchInput) {
+                searchInput.addEventListener("input", (e) => {
+                    const searchTerm = e.target.value;
+                    highlightAndZoomToNodes(searchTerm);
+                    filterMemberGrid(searchTerm); // Also filter the member grid
+                });
+            }
+
+            function highlightAndZoomToNodes(searchTerm) {
+                searchTerm = searchTerm.toLowerCase();
+
+                // Update node colors based on search and selection
+                updateNodeColors();
+
+                if (searchTerm) {
+                    const matchingNodes = node.filter(
+                        (d) =>
+                            d.name.toLowerCase().includes(searchTerm) ||
+                            d.program.toLowerCase().includes(searchTerm) ||
+                            d.year.toString().includes(searchTerm) ||
+                            (d.bio && d.bio.toLowerCase().includes(searchTerm))
+                    );
+
+                    if (matchingNodes.size() > 0) {
+                        let minX = Infinity, minY = Infinity;
+                        let maxX = -Infinity, maxY = -Infinity;
+
+                        matchingNodes.each((d) => {
+                            minX = Math.min(minX, d.x);
+                            minY = Math.min(minY, d.y);
+                            maxX = Math.max(maxX, d.x);
+                            maxY = Math.max(maxY, d.y);
+                        });
+
+                        const padding = 100;
+                        minX -= padding;
+                        minY -= padding;
+                        maxX += padding;
+                        maxY += padding;
+
+                        const scale = Math.min(width / (maxX - minX), height / (maxY - minY)) * 0.9;
+                        const centerX = (minX + maxX) / 2;
+                        const centerY = (minY + maxY) / 2;
+
+                        svg
+                            .transition()
+                            .duration(750)
+                            .call(
+                                zoom.transform,
+                                d3.zoomIdentity
+                                    .translate(width / 2, height / 2)
+                                    .scale(scale)
+                                    .translate(-centerX, -centerY)
+                            );
+                    }
+                } else {
+                    fitToView();
+                }
+            }
+
+            // Initialize with proper fit - faster stabilization
+            simulation.on("tick", () => {
+                ticked();
+                if (simulation.alpha() < 0.05) { // Lower threshold for faster stopping
+                    simulation.alphaTarget(0);
+                    fitToView();
+                    simulation.on("tick", ticked);
+                }
+            });
+
+            // Handle window resize
+            window.addEventListener("resize", () => {
+                const newWidth = container.clientWidth;
+                const newHeight = container.clientHeight;
+                svg.attr("viewBox", `0 0 ${newWidth} ${newHeight}`);
+                simulation.force("center", d3.forceCenter(newWidth / 2, newHeight / 2));
+                simulation.alpha(0.3).restart();
+            });
+        }
+
+        // Initialize network visualization after data is loaded
+        function initializeNetworkVisualization() {
+            console.log('initializeNetworkVisualization called, data length:', webringData.length);
+            console.log('D3 available:', typeof d3 !== 'undefined');
+            
+            // Show network section immediately
+            document.getElementById('networkSection').style.display = 'block';
+            
+            if (webringData.length > 0 && typeof d3 !== 'undefined') {
+                mobileExists = false;
+                desktopExists = false;
+                
+                // Clear existing visualizations
+                const desktop = document.getElementById("chart-container");
+                const mobile = document.getElementById("chart-container-mobile");
+                if (desktop) desktop.innerHTML = "";
+                if (mobile) mobile.innerHTML = "";
+                
+                console.log('Calling checkIfGraphNeeded...');
+                checkIfGraphNeeded();
+            } else {
+                console.log('Skipping network visualization - missing data or D3');
+                // Add fallback message
+                const container = window.innerWidth >= 640 ? 
+                    document.getElementById("chart-container") : 
+                    document.getElementById("chart-container-mobile");
+                
+                if (container) {
+                    container.innerHTML = `
+                        <div class="flex items-center justify-center h-full text-gray-500">
+                            <div class="text-center">
+                                <p class="text-sm mb-2">Loading network...</p>
+                                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-trent mx-auto"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Add event listener for window resize
+        window.addEventListener("resize", checkIfGraphNeeded);
+    </script>
+</body>
+</html> 

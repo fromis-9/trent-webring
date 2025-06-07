@@ -1,0 +1,29 @@
+# Admin tools
+admin.html
+
+# Documentation
+ARCHITECTURE.md
+SECURITY_AUDIT.md
+SETUP.md
+
+# Dependencies
+node_modules/
+
+# Build outputs
+css/output.css.map
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# macOS files
+.DS_Store
+
+# IDE files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.log 

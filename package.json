@@ -1,0 +1,18 @@
+{
+  "name": "trent-webring",
+  "version": "1.0.0",
+  "description": "A webring for Trent University students and alumni",
+  "main": "index.html",
+  "scripts": {
+    "build-css": "tailwindcss -i ./css/input.css -o ./css/output.css --watch",
+    "build": "tailwindcss -i ./css/input.css -o ./css/output.css",
+    "dev": "npx live-server ."
+  },
+  "keywords": ["webring", "trent", "university", "students"],
+  "author": "Trent University Community",
+  "license": "MIT",
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "live-server": "^1.2.2"
+  }
+} 
